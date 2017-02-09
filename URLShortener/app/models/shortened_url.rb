@@ -46,22 +46,21 @@ class ShortenedUrl < ActiveRecord::Base
   end
 
   def num_clicks
-    URLShortener.execute(<<-SQL, self.id)
-    SELECT
-      COUNT(*)
-    FROM
-      visits
-    WHERE
-      visits.shortened_url_id = ?
-    SQL
+    self.visits.size
   end
 
   def num_uniques
-
+    unique_visits = Visit.select(:user_id, :shortened_url_id).distinct
+    unique_visits.select{ |visit| visit.shortened_url_id == self.id }.count
   end
 
   def num_recent_uniques
-
+    recent_visits = Visit.where(["created_at > ?", 10.minutes.ago]).select(:user_id, :shortened_url_id).distinct
+    recent_visits.select{ |visit| visit.shortened_url_id == self.id }.count
+    # unique_visits = Visit.select(:user_id, :shortened_url_id).distinct
+    # unique_visits.select do |visit|
+    #   visit.shortened_url_id == self.id &&
+    # end.count
   end
 
 end
